@@ -31,7 +31,7 @@ Setup
    - Go to your GitHub repository settings
    - Navigate to "Webhooks" and click "Add webhook"
    - Enter the following details:
-     - Payload URL: `http://your-public-ip:5000/webhook`
+     - Payload URL: `https://your-public-url/webhook`
      - Content type: `application/json`
      - Which events would you like to trigger this webhook?: Select "Let me select individual events" and check "Issues" and "Pull requests"
    - Click "Add webhook"
