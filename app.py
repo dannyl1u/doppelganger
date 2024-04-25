@@ -4,6 +4,7 @@ app = Flask(__name__)
 
 @app.route('/webhook', methods=['POST'])
 def github_webhook():
+    print('Received webhook')
     data = request.json
     event_type = request.headers.get('X-GitHub-Event', 'ping')
 
@@ -22,4 +23,4 @@ def github_webhook():
     return jsonify({'status': 'success'}), 200
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    app.run(port=4000)
