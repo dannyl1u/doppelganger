@@ -8,7 +8,7 @@
 
 1. Clone this repository to your local machine:
 
-   `git clone https://github.com/dannyl1u/doppelganger.git`
+   `git clone https://github.com/dannyl1u/doppelganger.git`  
    `cd doppelganger`
 
 2. Create a virtual environment and install dependencies:
