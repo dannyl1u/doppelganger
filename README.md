@@ -4,12 +4,7 @@
 
 **topics: vector db, github, open-source, embedding search, rag, similarity scores**
 
-Requirements
-
-- Python 3.6 or later
-- Flask
-
-Setup
+## Setup
 
 1. Clone this repository to your local machine:
 
@@ -36,11 +31,7 @@ Setup
      - Which events would you like to trigger this webhook?: Select "Let me select individual events" and check "Issues" and "Pull requests"
    - Click "Add webhook"
 
-Using the Bot
-
-After completing the setup, the bot will listen for events from GitHub. You can observe the logs in your terminal to confirm that the bot is receiving and processing events correctly. This project can be extended to perform additional actions upon receiving pull requests or issues.
-
-Notes
+## Notes
 
 - To make your Flask server publicly accessible, consider using a tool like [ngrok](https://ngrok.com/) to expose it to the internet during development.
 - Ensure proper security measures for the webhook endpoint to avoid unauthorized access or potential attacks.
