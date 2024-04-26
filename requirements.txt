@@ -1,5 +1,4 @@
-Flask==2.3.3
-requests==2.31.0
-transformers==4.34.0
-torch==2.1.0
-chromadb==0.5.0
+Flask==3.0.3
+numpy==1.26.4
+scikit_learn==1.4.2
+sentence_transformers==2.7.0
