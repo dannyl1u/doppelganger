@@ -2,18 +2,13 @@ from flask import Flask, request, jsonify
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
-import chromadb
 
 app = Flask(__name__)
 
-chroma_client = chromadb.Client()
-
-collection_name = "github_issues"
-
 model = SentenceTransformer("all-MiniLM-L6-v2")
-texts = []
+issues_data = []
 
-SIMILARITY_THRESHOLD = 0.7
+SIMILARITY_THRESHOLD = 0.5
 
 @app.route('/webhook', methods=['POST'])
 def github_webhook():
@@ -21,13 +16,7 @@ def github_webhook():
     data = request.json
     event_type = request.headers.get('X-GitHub-Event', 'ping')
 
-    if event_type == 'pull_request':
-        action = data.get('action')
-        pr_number = data['pull_request']['number']
-        if action == 'opened':
-            print(f'New PR opened: {pr_number}')
-
-    elif event_type == 'issues':
+    if event_type == 'issues':
         action = data.get('action')
         issue_number = data['issue']['number']
         issue_title = data['issue']['title']
@@ -35,29 +24,29 @@ def github_webhook():
 
         if action == 'opened':
             print(f'New issue opened: {issue_number}')
-            issue_title = issue_title or ""
-            issue_description = issue_description or ""
-            full_issue = issue_title + issue_description
+            full_issue = (issue_title or "") + (issue_description or "")
 
-            if texts:
+            if issues_data:
                 query_embedding = model.encode(full_issue)
-                array_embeddings = model.encode(texts)
+                array_embeddings = model.encode([issue['full_text'] for issue in issues_data])
 
-                cosine_similarities = cosine_similarity(
-                    [query_embedding], array_embeddings
-                )
-
+                cosine_similarities = cosine_similarity([query_embedding], array_embeddings)
                 max_similarity = max(cosine_similarities[0])
                 max_index = cosine_similarities[0].tolist().index(max_similarity)
 
                 if max_similarity > SIMILARITY_THRESHOLD:
+                    most_similar_issue = issues_data[max_index]
                     print(
-                        f"New issue {issue_number} is most similar to existing issue at index {max_index} with a similarity score of {max_similarity:.2f}"
+                        f"The new issue #{issue_number} with title '{issue_title}' is most similar to existing issue #{most_similar_issue['issue_number']} with title '{most_similar_issue['title']}', having a cosine similarity of {max_similarity:.2f}."
                     )
                 else:
-                    print(f"New issue {issue_number} is not similar to any existing issues")
+                    print(f"The new issue #{issue_number} with title '{issue_title}' is not similar to any existing issue.")
 
-            texts.append(full_issue)
+            issues_data.append({
+                "issue_number": issue_number,
+                "title": issue_title,
+                "full_text": full_issue
+            })
 
     return jsonify({'status': 'success'}), 200
 
