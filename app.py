@@ -1,8 +1,8 @@
 from flask import Flask, request, jsonify
-from transformers import AutoTokenizer, AutoModel
-import torch
-import chromadb
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+import chromadb
 
 app = Flask(__name__)
 
@@ -10,25 +10,10 @@ chroma_client = chromadb.Client()
 
 collection_name = "github_issues"
 
-existing_collections = chroma_client.list_collections()
-if collection_name in existing_collections:
-    chroma_client.delete_collection(collection_name)
+model = SentenceTransformer("all-MiniLM-L6-v2")
+texts = []
 
-collection = chroma_client.create_collection(name=collection_name)
-
-tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
-model = AutoModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
-
-def get_embedding(text):
-    inputs = tokenizer(text, return_tensors="pt")
-    with torch.no_grad():
-        outputs = model(**inputs)
-        embedding = outputs.last_hidden_state.mean(dim=1).numpy().flatten().tolist()
-
-    if not all(isinstance(x, float) for x in embedding):
-        raise ValueError("Embedding should be a flat list of floats.")
-
-    return embedding
+SIMILARITY_THRESHOLD = 0.7
 
 @app.route('/webhook', methods=['POST'])
 def github_webhook():
@@ -50,39 +35,29 @@ def github_webhook():
 
         if action == 'opened':
             print(f'New issue opened: {issue_number}')
-            issue_title = issue_title or "No title provided."
-            issue_description = issue_description or "No description provided."
+            issue_title = issue_title or ""
+            issue_description = issue_description or ""
+            full_issue = issue_title + issue_description
 
-            new_embedding = get_embedding(issue_title + " " + issue_description)
+            if texts:
+                query_embedding = model.encode(full_issue)
+                array_embeddings = model.encode(texts)
 
-            try:
-                results = collection.query(
-                    query_embeddings=[new_embedding],
-                    n_results=5
+                cosine_similarities = cosine_similarity(
+                    [query_embedding], array_embeddings
                 )
 
-                found_similar = False
+                max_similarity = max(cosine_similarities[0])
+                max_index = cosine_similarities[0].tolist().index(max_similarity)
 
-                if "documents" in results and isinstance(results["documents"], list):
-                    for document in results["documents"]:
-                        if "distance" in document and "id" in document:
-                            if document["distance"] < 0.9:
-                                print(f"New issue {issue_number} is similar to existing issue with ID {document['id']} and similarity score {document['distance']:.2f}")
-                                found_similar = True
+                if max_similarity > SIMILARITY_THRESHOLD:
+                    print(
+                        f"New issue {issue_number} is most similar to existing issue at index {max_index} with a similarity score of {max_similarity:.2f}"
+                    )
+                else:
+                    print(f"New issue {issue_number} is not similar to any existing issues")
 
-                if not found_similar:
-                    print(f"New issue {issue_number} has no similar existing issues.")
-
-                collection.add(
-                    embeddings=[new_embedding],
-                    documents=[f"{issue_title} {issue_description}"],
-                    metadatas=[{"issue_number": issue_number, "title": issue_title, "description": issue_description}],
-                    ids=[str(issue_number)]
-                )
-
-            except Exception as e:
-                print("Error during Chroma query:", e)
-                return jsonify({"status": "error", "message": "Failed to query embeddings"}), 500
+            texts.append(full_issue)
 
     return jsonify({'status': 'success'}), 200
 
