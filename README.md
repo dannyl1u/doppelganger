@@ -12,7 +12,7 @@
    `cd doppelganger`
 2. Build Docker image and run:
 
-`docker build -t doppelganger . && docker run --name doppelganger doppelganger`
+   `docker build -t doppelganger . && docker run --name doppelganger doppelganger`
 
 or 
 
