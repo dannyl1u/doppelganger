@@ -4,6 +4,8 @@
 
 **topics: vector db, github, open-source, embedding search, rag, similarity scores**
 
+https://github.com/dannyl1u/doppelganger/assets/45186464/cdc1c68b-4241-43d9-806c-b4b5cc1a702d
+
 ## Setup
 
 1. Clone this repository to your local machine:
