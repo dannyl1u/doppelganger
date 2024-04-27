@@ -6,8 +6,6 @@
 
 ## Setup
 
-`docker build -t doppelganger . && docker run --name doppelganger doppelganger`
-
 1. Clone this repository to your local machine:
 
    `git clone https://github.com/dannyl1u/doppelganger.git`  
