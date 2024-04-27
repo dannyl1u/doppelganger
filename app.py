@@ -58,6 +58,22 @@ def close_issue(installation_id, repo_full_name, issue_number):
     )
     response.raise_for_status()
 
+def leave_comment(installation_id, repo_full_name, issue_number, comment_text):
+    access_token = get_access_token(installation_id)
+    headers = {
+        "Authorization": f"token {access_token}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    payload = {
+        "body": comment_text
+    }
+    response = requests.post(
+        f"https://api.github.com/repos/{repo_full_name}/issues/{issue_number}/comments",
+        json=payload,
+        headers=headers
+    )
+    response.raise_for_status()
+
 @app.before_request
 def verify_github_signature():
     signature = request.headers.get("X-Hub-Signature-256")
@@ -107,8 +123,10 @@ def github_webhook():
                 max_index = cosine_similarities[0].tolist().index(max_similarity)
 
                 if max_similarity > SIMILARITY_THRESHOLD and repo_full_name:
-                    close_issue(installation_id, repo_full_name, issue_number)
                     most_similar_issue = issues_data[max_index]
+                    comment_text = f"Closed due to high similarity with issue #{most_similar_issue['issue_number']} with title '{most_similar_issue['title']}'"
+                    leave_comment(installation_id, repo_full_name, issue_number, comment_text)
+                    close_issue(installation_id, repo_full_name, issue_number)
                     print(
                         f"The new issue #{issue_number} with title '{issue_title}' is most similar to existing issue #{most_similar_issue['issue_number']} with title '{most_similar_issue['title']}', with a cosine similarity of {max_similarity:.2f}."
                     )
