@@ -48,3 +48,13 @@ or
 
 - To make your Flask server publicly accessible, consider using a tool like [ngrok](https://ngrok.com/) to expose it to the internet during development.
 - Ensure proper security measures for the webhook endpoint to avoid unauthorized access or potential attacks.
+
+## Star History
+
+<a href="https://star-history.com/#dannyl1u/doppelganger&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=dannyl1u/doppelganger&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=dannyl1u/doppelganger&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=dannyl1u/doppelganger&type=Date" />
+  </picture>
+</a>
