@@ -34,15 +34,17 @@ or
    python app.py
    ```
 
-4. Configure a GitHub Webhook:
+4. Configure a GitHub App Webhook:
 
-   - Go to your GitHub repository settings
-   - Navigate to "Webhooks" and click "Add webhook"
-   - Enter the following details:
-     - Payload URL: `https://your-public-url/webhook`
-     - Content type: `application/json`
-     - Which events would you like to trigger this webhook?: Select "Let me select individual events" and check "Issues" and "Pull requests"
-   - Click "Add webhook"
+- Go to your GitHub account settings and navigate to "Developer settings" > "GitHub Apps".
+- Click "New GitHub App" or select your existing GitHub App.
+- Under "Webhook URL", enter the following URL: `https://your-public-url/webhook`.
+- Set the "Webhook secret" to match the value in your `.env` file (`WEBHOOK_SECRET`).
+- Under "Permissions & events", ensure the app has the necessary permissions:
+  - Repository permissions: `Read & Write` for `Issues` and `Pull requests`.
+  - Subscribe to events: Check "Issues" and "Pull requests".
+- Click "Create GitHub App" or "Save changes".
+- Install the GitHub App on the target repository by navigating to the "Install App" section and selecting the repository.
 
 ## Notes
 
