@@ -29,8 +29,11 @@ This application is a GitHub App that automatically compares newly opened issues
 5. Set permissions:
    - Repository permissions:
      - Issues: Read & write
+     - Pull requests: Read & Write
+     - Webhooks: Read-only
    - Subscribe to events:
      - Issues
+     - Pull request
 6. Create the app and note down the App ID
 7. Generate a private key and download it (you'll need this later)
 
@@ -79,9 +82,9 @@ This application is a GitHub App that automatically compares newly opened issues
 
 Once installed, the app will automatically:
 
-1. Monitor new issues in the selected repositories.
-2. Compare new issues with existing ones using semantic similarity.
-3. Close and comment on highly similar issues to reduce duplication.
+1. Monitor new issues and PRs in the selected repositories.
+2. Compare new issues and PRs with existing ones using semantic similarity.
+3. Close and comment on highly similar issues and PRs to reduce duplication.
 
 ## Configuration
 
