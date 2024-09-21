@@ -8,6 +8,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from dotenv import load_dotenv
 import os
+import chromadb
 
 load_dotenv()
 
@@ -21,6 +22,10 @@ model = SentenceTransformer("all-MiniLM-L6-v2")
 issues_data = []
 
 SIMILARITY_THRESHOLD = 0.5
+
+chroma_client = chromadb.PersistentClient(path="./chroma")
+collection = chroma_client.get_or_create_collection("github_issues")
+
 
 def generate_jwt():
     current_time = int(time.time())
