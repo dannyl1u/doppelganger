@@ -5,6 +5,7 @@ chroma_client = chromadb.PersistentClient(path="./chroma")
 collection = chroma_client.get_or_create_collection("github_issues")
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
+
 def add_issue_to_chroma(full_issue, issue_number, issue_title, repo_full_name):
     embedding = model.encode(full_issue).tolist()
     
@@ -14,6 +15,7 @@ def add_issue_to_chroma(full_issue, issue_number, issue_title, repo_full_name):
         embeddings=[embedding],
         ids=[f"{repo_full_name}_{issue_number}"]
     )
+
 
 def query_similar_issue(full_issue):
     embedding = model.encode(full_issue).tolist()
@@ -30,11 +32,13 @@ def query_similar_issue(full_issue):
         }
     return None
 
+
 def remove_issues_from_chroma(repo_full_name):
     results = collection.get(where={"repo_full_name": repo_full_name})
     
     if results and results['ids']:
         collection.delete(ids=results['ids'])
+
 
 def add_issues_to_chroma(issues):
     for issue in issues:

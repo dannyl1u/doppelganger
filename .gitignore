@@ -1,5 +1,16 @@
+# Byte-compiled / optimized / DLL files / IDE settings
+__pycache__/
+*.py[cod]
+*$py.class
+.idea/
+
+# User Data
+chroma/
+
+# Docker
+volumes/
+
+# Environments / credentials
 venv/
 .env
-volumes/
 *.pem
-chroma/

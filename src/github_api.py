@@ -3,6 +3,7 @@ import time
 import requests
 from config import APP_ID, PRIVATE_KEY
 
+
 def generate_jwt():
     current_time = int(time.time())
     payload = {
@@ -11,6 +12,7 @@ def generate_jwt():
         "iss": APP_ID
     }
     return jwt.encode(payload, PRIVATE_KEY, algorithm="RS256")
+
 
 def get_access_token(installation_id):
     jwt_token = generate_jwt()
@@ -25,6 +27,7 @@ def get_access_token(installation_id):
     response.raise_for_status()
     return response.json()["token"]
 
+
 def close_issue(installation_id, repo_full_name, issue_number):
     access_token = get_access_token(installation_id)
     headers = {
@@ -38,6 +41,7 @@ def close_issue(installation_id, repo_full_name, issue_number):
         headers=headers
     )
     response.raise_for_status()
+
 
 def leave_comment(installation_id, repo_full_name, issue_number, comment_text):
     access_token = get_access_token(installation_id)
@@ -54,6 +58,7 @@ def leave_comment(installation_id, repo_full_name, issue_number, comment_text):
         headers=headers
     )
     response.raise_for_status()
+
 
 def fetch_existing_issues(installation_id, repo_full_name):
     access_token = get_access_token(installation_id)
