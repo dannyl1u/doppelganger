@@ -1,14 +1,14 @@
+import logging
+
+from config import SIMILARITY_THRESHOLD
 from src.github_api import close_issue, leave_comment
 from src.vector_db import add_issue_to_chroma, query_similar_issue
-from config import SIMILARITY_THRESHOLD
-
-import logging
 
 logger = logging.getLogger(__name__)
 
 
 def handle_new_issue(
-    installation_id, repo_full_name, issue_number, issue_title, issue_body
+        installation_id, repo_full_name, issue_number, issue_title, issue_body
 ):
     logger.info(f"New issue opened: {issue_number} in {repo_full_name}")
     full_issue = f"{issue_title} {issue_body}"

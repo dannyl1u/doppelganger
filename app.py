@@ -1,6 +1,8 @@
-from flask import Flask
-from src.webhook_handler import webhook_blueprint
 import logging
+
+from flask import Flask
+
+from src.webhook_handler import webhook_blueprint
 
 app = Flask(__name__)
 app.register_blueprint(webhook_blueprint)

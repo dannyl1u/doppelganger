@@ -1,12 +1,13 @@
-from flask import Blueprint, request, jsonify, abort
-import hmac
 import hashlib
+import hmac
+import logging
+
+from flask import Blueprint, request, jsonify, abort
+
 from config import WEBHOOK_SECRET
 from src.github_api import fetch_existing_issues
-from src.vector_db import add_issues_to_chroma, remove_issues_from_chroma
 from src.issue_handler import handle_new_issue
-
-import logging
+from src.vector_db import add_issues_to_chroma, remove_issues_from_chroma
 
 logger = logging.getLogger(__name__)
 webhook_blueprint = Blueprint("webhook", __name__)
@@ -19,10 +20,10 @@ def verify_github_signature():
         abort(400, "Signature is missing")
 
     calculated_signature = (
-        "sha256="
-        + hmac.new(
-            WEBHOOK_SECRET.encode("utf-8"), request.data, hashlib.sha256
-        ).hexdigest()
+            "sha256="
+            + hmac.new(
+        WEBHOOK_SECRET.encode("utf-8"), request.data, hashlib.sha256
+    ).hexdigest()
     )
 
     if not hmac.compare_digest(signature, calculated_signature):
