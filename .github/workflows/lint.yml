@@ -1,8 +1,9 @@
 name: Lint
 
-on: [push, pull_request]
-branches:
-  - chore/set-up-repository-pipeline-with-linter # todo: remove branch-specific after testing
+on:
+  push:
+      branches:
+        - chore/set-up-repository-pipeline-with-linter
 
 jobs:
   lint:
