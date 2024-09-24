@@ -1,12 +1,8 @@
 name: Lint
-# TODO: remove branch-specfic rules when the main branch is lint-ready
+
 on:
-  push:
-    branches:
-      - chore/set-up-repository-pipeline-with-linter
-  pull_request:
-    branches:
-      - chore/set-up-repository-pipeline-with-linter
+  - push
+  - pull_request
 
 jobs:
   code-formatter-black:
