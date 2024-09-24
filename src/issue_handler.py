@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def handle_new_issue(
-        installation_id, repo_full_name, issue_number, issue_title, issue_body
+    installation_id, repo_full_name, issue_number, issue_title, issue_body
 ):
     logger.info(f"New issue opened: {issue_number} in {repo_full_name}")
     full_issue = f"{issue_title} {issue_body}"
