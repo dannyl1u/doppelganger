@@ -1,11 +1,13 @@
-from flask import Flask
-from src.webhook_handler import webhook_blueprint
 import logging
+
+from flask import Flask
+
+from src.webhook_handler import webhook_blueprint
 
 app = Flask(__name__)
 app.register_blueprint(webhook_blueprint)
 logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(port=4000)
