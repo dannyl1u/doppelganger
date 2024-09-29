@@ -8,7 +8,10 @@ To evaluate doppelganger, we will use the following popular open-source reposito
 - https://github.com/facebook/react/issues/
 - https://github.com/apache/airflow/issues/
 - https://github.com/apache/kafka/issues/
-- ... and more
+- ... TODO
 
 ### Methods
+TODO
+
+### Results
 TODO
