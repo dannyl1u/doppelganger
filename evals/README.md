@@ -11,7 +11,8 @@ To evaluate doppelganger, we will use the following popular open-source reposito
 - ... TODO
 
 ### Methods
-TODO
+1. Create csv of all closed/open issues
+2. Classify closed issues into DUPLICATE or NOT_DUPLICATE
 
 ### Results
 TODO
