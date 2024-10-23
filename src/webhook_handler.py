@@ -126,7 +126,10 @@ def handle_pull_requests(data, installation_id):
         abort(400, "Repository full name is missing")
 
     if action == "opened":
-        handle_new_pull_request(installation_id, repo_full_name, pull_request['number'], pull_request.get('title', ''), pull_request.get('body', ''))
-
-
-
+        handle_new_pull_request(
+            installation_id,
+            repo_full_name,
+            pull_request["number"],
+            pull_request.get("title", ""),
+            pull_request.get("body", ""),
+        )
