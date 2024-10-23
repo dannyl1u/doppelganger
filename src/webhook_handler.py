@@ -125,9 +125,7 @@ def handle_pull_requests(data, installation_id):
     if not repo_full_name:
         abort(400, "Repository full name is missing")
 
-    logging.info("inside handle pull reqeust")
-    if action == "edited": #todo this is not running, also need to change edited back to opened
-        # send requeest to ollama
+    if action == "edited": # change edited back to opened
         handle_new_pull_request(installation_id, repo_full_name, pull_request['number'], pull_request.get('title', ''), pull_request.get('body', ''))
 
 

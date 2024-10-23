@@ -41,7 +41,6 @@ def close_issue(installation_id, repo_full_name, issue_number):
     response.raise_for_status()
 
 
-# TODO: generalize this function for PR usage too
 def leave_comment(installation_id, repo_full_name, issue_number, comment_text):
     access_token = get_access_token(installation_id)
     headers = {
