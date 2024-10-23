@@ -7,6 +7,7 @@ from flask import Blueprint, request, jsonify, abort
 from config import WEBHOOK_SECRET
 from src.github_api import fetch_existing_issues
 from src.issue_handler import handle_new_issue
+from src.pull_request_handler import handle_new_pull_request
 from src.vector_db import add_issues_to_chroma, remove_issues_from_chroma
 
 logger = logging.getLogger(__name__)
@@ -50,6 +51,8 @@ def github_webhook():
         handle_installation(data, installation_id)
     elif event_type == "issues":
         handle_issues(data, installation_id)
+    elif event_type == "pull_request":
+        handle_pull_requests(data, installation_id)
 
     return jsonify({"status": "success"}), 200
 
@@ -111,4 +114,22 @@ def handle_issues(data, installation_id):
             issue["number"],
             issue["title"],
             issue.get("body", ""),
+        )
+
+
+def handle_pull_requests(data, installation_id):
+    action = data.get("action")
+    pull_request = data["pull_request"]
+    repo_full_name = data.get("repository", {}).get("full_name")
+
+    if not repo_full_name:
+        abort(400, "Repository full name is missing")
+
+    if action == "opened":
+        handle_new_pull_request(
+            installation_id,
+            repo_full_name,
+            pull_request["number"],
+            pull_request.get("title", ""),
+            pull_request.get("body", ""),
         )

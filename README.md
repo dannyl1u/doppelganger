@@ -7,12 +7,13 @@
 https://github.com/dannyl1u/doppelganger/assets/45186464/cdc1c68b-4241-43d9-806c-b4b5cc1a702d
 
 This application is a GitHub App that automatically compares newly opened issues with existing ones, closing and commenting on highly similar issues to reduce duplication.
-
+In addition, it comments feedback on PRs based on title and description for points to consider.
 ## Prerequisites
 
-- Python 3.7+
+- Python 3.8+
 - A GitHub account
 - A server or hosting platform to run the app (e.g., Heroku, DigitalOcean, AWS)
+- [ollama](https://github.com/ollama/ollama) 
 
 ## Setup Instructions
 
@@ -54,6 +55,7 @@ This application is a GitHub App that automatically compares newly opened issues
    ```
    APP_ID=your_app_id_here
    WEBHOOK_SECRET=your_webhook_secret_here
+   OLLAMA_MODEL=your_chosen_llm_model_here
    ```
 
 4. Place the downloaded private key in the project root and name it `rsa.pem`.
