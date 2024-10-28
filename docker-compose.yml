@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  flask_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flask_app
+    depends_on:
+      - ollama
+      - ngrok
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "4000:4000"  # Customize this port based on Ollama's configuration
+    command: ollama run ${OLLAMA_MODEL}
+
+  ngrok:
+    image: wernight/ngrok
+    container_name: ngrok
+    environment:
+      - NGROK_AUTH=<your_ngrok_auth_token>  # Add your auth token
+      - NGROK_REGION=us
+      - NGROK_PORT=flask_app:5000
+    command: ngrok http flask_app:5000
+    depends_on:
+      - flask_app
+    ports:
+      - "4040:4040"  # Exposes the Ngrok web interface
