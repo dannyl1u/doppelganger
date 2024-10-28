@@ -60,7 +60,7 @@ cp .env.example .env
 Open the newly created `.env` file and update the following variables with your own values:
 \* `APP_ID`: Replace `your_app_id_here` with your actual app ID.
 \* `WEBHOOK_SECRET`: Replace `your_webhook_secret_here` with your actual webhook secret.
-\* `OLLAMA_MODEL`: Replace `your_chosen_llm_model_here` with your chosen LLM model.
+\* `OLLAMA_MODEL`: Replace `your_chosen_llm_model_here` with your chosen LLM model (e.g. "llama3.2"). Note: it must be an Ollama supported model (see: https://ollama.com/library for supported models)
 
 4. Place the downloaded private key in the project root and name it `rsa.pem`.
 
