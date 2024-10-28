@@ -64,17 +64,33 @@ Open the newly created `.env` file and update the following variables with your 
 
 4. Place the downloaded private key in the project root and name it `rsa.pem`.
 
-### 3. Deploy the Application
+5. Run the application locally
 
-1. Choose a hosting platform (e.g., Heroku, DigitalOcean, AWS) and follow their deployment instructions.
-2. Make sure your server is accessible via HTTPS.
-3. Set the environment variables (`APP_ID`, `WEBHOOK_SECRET`) on your hosting platform.
-4. Upload the `rsa.pem` file to your server (ensure it's not publicly accessible).
+Start the Flask application:
+   ```bash
+   python3 app.py
+   ```
+
+The application will start running on http://localhost:4000
+
+### 3. Deploy the Application (ngrok instructions)
+
+1. We will use ngrok for its simplicity
+
+In a new terminal window, start ngrok to create a secure tunnel to your local server:
+
+  ```bash
+  ngrok http 4000
+  ```
+
+ngrok will generate a public URL (e.g., https://abc123.ngrok.io)
+
+Append `/webhook` to the url, e.g.  https://abc123.ngrok.io -> https://abc123.ngrok.io/webhook
 
 ### 4. Update GitHub App Settings
 
 1. Go back to your GitHub App settings.
-2. Update the Webhook URL to point to your deployed application (e.g., https://your-server.com/webhook).
+2. Update the Webhook URL to point to your deployed application (e.g., https://abc123.ngrok.io/webhook).
 
 ### 5. Install the GitHub App
 
