@@ -4,32 +4,29 @@ import styles from './styles.module.css';
 
 const FeatureList = [
   {
-    title: 'Easy to Use',
+    title: 'Duplicate Detection',
     Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        Doppelgänger embeds each GitHub issues into a vector, using a locally hosted LLM, to compare for similarity
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
+    title: 'Pull Request Feedback',
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        Doppelgänger helps avoid easy mistakes by analyzing each pull request and asks the PR author to address any feedback or concerns
       </>
     ),
   },
   {
-    title: 'Powered by React',
+    title: 'Open Source',
     Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Doppelgänger will always remain open-source, providing an easy way to locally host, extend, and customize your own doppelganger
       </>
     ),
   },
