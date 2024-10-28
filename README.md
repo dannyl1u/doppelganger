@@ -85,7 +85,7 @@ In a new terminal window, start ngrok to create a secure tunnel to your local se
 
 ngrok will generate a public URL (e.g., https://abc123.ngrok.io)
 
-Append `/webhook` to the url, e.g. `https://abc123.ngrok.io/webhook`
+Append `/webhook` to the url, e.g.  https://abc123.ngrok.io -> https://abc123.ngrok.io/webhook
 
 ### 4. Update GitHub App Settings
 
