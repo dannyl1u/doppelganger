@@ -1,4 +1,4 @@
-# doppelgänger
+# Getting started
 <ins>Problem:</ins> open-source maintainers spend a lot of time managing duplicate/related (doppelgänger) issues & pull requests  
 <ins>Solution:</ins> doppelgänger compares newly submitted issues/PRs against existing ones to automatically flag duplicate/related (doppelgänger) issues/PRs
 
@@ -8,10 +8,6 @@ https://github.com/dannyl1u/doppelganger/assets/45186464/cdc1c68b-4241-43d9-806c
 
 This application is a GitHub App that automatically compares newly opened issues with existing ones, closing and commenting on highly similar issues to reduce duplication.
 In addition, it comments feedback on PRs based on title and description for points to consider.
-
-[Doppelganger Documentation](https://dannyl1u.github.io/doppelganger/docs/intro)
-
-
 ## Prerequisites
 
 - Python 3.8+
