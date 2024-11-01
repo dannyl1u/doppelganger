@@ -90,9 +90,9 @@ main() {
             log_message "Failed to start Ollama"
     fi
 
-    # Start Ngrok if configured
-    if [[ -n "${NGROK_DOMAIN:-}" ]] && [[ -n "${PORT:-}" ]]; then
-        start_process "Ngrok" "ngrok http '${PORT}' --url '${NGROK_DOMAIN}'" || \
+    # Start Ngrok if configured. Using Port 4000 to match app.py
+    if [[ -n "${NGROK_DOMAIN:-}" ]]; then
+        start_process "Ngrok" "ngrok http 4000 --url '${NGROK_DOMAIN}'" || \
             log_message "Failed to start Ngrok"
     fi
 

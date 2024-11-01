@@ -65,7 +65,7 @@ Open the newly created `.env` file and update the following variables with your 
 \* `APP_ID`: Replace `your_app_id_here` with your actual app ID.  
 \* `WEBHOOK_SECRET`: Replace `your_webhook_secret_here` with your actual webhook secret.  
 \* `OLLAMA_MODEL`: Replace `your_chosen_llm_model_here` with your chosen LLM model (e.g. "llama3.2"). Note: it must be an Ollama supported model (see: https://ollama.com/library for supported models)  
-
+\* `NGROK_DOMAIN`: Replace `your_ngrok_domain_here` with your ngrok domain if you have one
 4. Place the downloaded private key in the project root and name it `rsa.pem`.
 
 5. Run the application locally
@@ -77,10 +77,11 @@ Start the Flask application:
 
 The application will start running on http://localhost:4000
 
-### 3. Deploy the Application (ngrok instructions)
+### 3. Prepare Dependencies and Deploy (ngrok and Ollama instructions)
 
-1. We will use ngrok for its simplicity
+We will use ngrok for its simplicity
 
+**Option 1: generated public URL**
 In a new terminal window, start ngrok to create a secure tunnel to your local server:
 
   ```bash
@@ -90,6 +91,18 @@ In a new terminal window, start ngrok to create a secure tunnel to your local se
 ngrok will generate a public URL (e.g., https://abc123.ngrok.io)
 
 Append `/webhook` to the url, e.g.  https://abc123.ngrok.io -> https://abc123.ngrok.io/webhook
+
+In another terminal window, start Ollama
+
+```bash
+ollama run <an OLLAMA model here>
+```
+**Option 2: Using Shell Script with your own ngrok domain**
+
+Ensure environment variables are all set.
+```bash
+./run-dev.sh
+``` 
 
 ### 4. Update GitHub App Settings
 
