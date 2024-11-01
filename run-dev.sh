@@ -1,11 +1,6 @@
 #!/bin/bash
 set -E
 set -m
-set -x
-
-# Trap various signals
-#trap 'kill $(jobs -p | xargs)' SIGINT SIGTERM EXIT
-
 
 # Array to store subshell PIDs
 declare -a subshell_pids=()
@@ -23,10 +18,8 @@ log_message() {
 is_process_running() {
     local pid=$1
     if kill -0 "$pid"; then
-        log_message "PID: $pid is running"
         return 0
     else
-        log_message "PID: $pid is NOT running"
         return 1
     fi
 }
@@ -40,11 +33,10 @@ cleanup() {
 
     # Kill all registered subshell processes by group process ID
     for pid in "${subshell_pids[@]}"; do
-      log_message "attempting to kill PID $pid..."
         if is_process_running "$pid"; then
             log_message "Terminating process $pid"
             kill -- -"$pid" >>$LOG_FILE 2>&1
-            wait -- -"$pid" >/dev/null
+            wait -- -"$pid" >/dev/null 2>&1
         fi
     done
 
@@ -59,10 +51,10 @@ start_process() {
     local process_name="$1"
     local command="$2"
 
-    # Start the process in a subshell with proper output redirection
+    # Start the process in a subshell
     (
         eval "$command"
-    ) >/dev/null 2> "$LOG_FILE" &
+    ) > /dev/null 2>&1 &
 
     local pid=$!
 
@@ -104,13 +96,8 @@ main() {
             log_message "Failed to start Ngrok"
     fi
 
-    echo "echoing pids"
-    for pid in "${subshell_pids[@]}"; do
-      echo "$pid"
-    done
-
-    # Monitor processes and wait for exit command
-    log_message "All processes started. Type 'exit' to quit"
+    # Wait for exit command. NOTE: If stuck in console, close the terminal
+    log_message "All processes started. Type 'exit' or CTRL+C to quit"
     while read -r -p "> " input; do
         if [[ "${input,,}" == "exit" ]]; then
             log_message "Exit command received"
