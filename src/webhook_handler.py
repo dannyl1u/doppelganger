@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import logging
 
+import requests
 from flask import Blueprint, request, jsonify, abort
 
 from config import WEBHOOK_SECRET
@@ -21,10 +22,10 @@ def verify_github_signature():
         abort(400, "Signature is missing")
 
     calculated_signature = (
-        "sha256="
-        + hmac.new(
-            WEBHOOK_SECRET.encode("utf-8"), request.data, hashlib.sha256
-        ).hexdigest()
+            "sha256="
+            + hmac.new(
+        WEBHOOK_SECRET.encode("utf-8"), request.data, hashlib.sha256
+    ).hexdigest()
     )
 
     if not hmac.compare_digest(signature, calculated_signature):
@@ -125,11 +126,14 @@ def handle_pull_requests(data, installation_id):
     if not repo_full_name:
         abort(400, "Repository full name is missing")
 
-    if action == "opened":
+    pr_diff = requests.get(pull_request["diff_url"]).text
+
+    if action == "opened" or action == "edited":
         handle_new_pull_request(
             installation_id,
             repo_full_name,
             pull_request["number"],
             pull_request.get("title", ""),
             pull_request.get("body", ""),
+            pr_diff,
         )
