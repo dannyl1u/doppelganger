@@ -22,10 +22,10 @@ def verify_github_signature():
         abort(400, "Signature is missing")
 
     calculated_signature = (
-            "sha256="
-            + hmac.new(
-        WEBHOOK_SECRET.encode("utf-8"), request.data, hashlib.sha256
-    ).hexdigest()
+        "sha256="
+        + hmac.new(
+            WEBHOOK_SECRET.encode("utf-8"), request.data, hashlib.sha256
+        ).hexdigest()
     )
 
     if not hmac.compare_digest(signature, calculated_signature):

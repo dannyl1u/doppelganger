@@ -9,12 +9,12 @@ logger = logging.getLogger(__name__)
 
 
 def handle_new_pull_request(
-        installation_id,
-        repo_full_name,
-        pull_request_number,
-        pull_request_title,
-        pull_request_body,
-        pr_diff,
+    installation_id,
+    repo_full_name,
+    pull_request_number,
+    pull_request_title,
+    pull_request_body,
+    pr_diff,
 ):
     context = (
         "I am programming and I plan to merge in a pull request.\ Given the title, description, and pull rquest "
