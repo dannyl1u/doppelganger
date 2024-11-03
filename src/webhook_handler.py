@@ -128,7 +128,7 @@ def handle_pull_requests(data, installation_id):
 
     pr_diff = requests.get(pull_request["diff_url"]).text
 
-    if action == "opened" or action == "edited":
+    if action == "opened":
         handle_new_pull_request(
             installation_id,
             repo_full_name,
