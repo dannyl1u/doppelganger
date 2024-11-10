@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import logging
 
+import requests
 from flask import Blueprint, request, jsonify, abort
 
 from config import WEBHOOK_SECRET
@@ -125,6 +126,8 @@ def handle_pull_requests(data, installation_id):
     if not repo_full_name:
         abort(400, "Repository full name is missing")
 
+    pr_diff = requests.get(pull_request["diff_url"]).text
+
     if action == "opened":
         handle_new_pull_request(
             installation_id,
@@ -132,4 +135,5 @@ def handle_pull_requests(data, installation_id):
             pull_request["number"],
             pull_request.get("title", ""),
             pull_request.get("body", ""),
+            pr_diff,
         )
