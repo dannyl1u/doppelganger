@@ -14,3 +14,4 @@ volumes/
 venv/
 .env
 *.pem
+tmp/
