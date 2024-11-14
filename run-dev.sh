@@ -8,6 +8,10 @@ declare -a subshell_pids=()
 # Log file for debugging
 LOG_FILE="tmp/run-dev.log"
 
+# Ensure the tmp directory and log file exist
+mkdir -p tmp
+touch "$LOG_FILE"
+
 # Function to log messages
 log_message() {
     local message="$1"
