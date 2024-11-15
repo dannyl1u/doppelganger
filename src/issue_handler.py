@@ -14,7 +14,9 @@ def handle_new_issue(
     logger.info(f"New issue opened: {issue_number} in {repo_full_name}")
     full_issue = f"{issue_title} {issue_body}"
 
-    stripped_title = re.sub(r'^(bug:|feat:|enh:|chore:)\s*', '', issue_title, flags=re.IGNORECASE)    
+    stripped_title = re.sub(
+        r"^(bug:|feat:|enh:|chore:)\s*", "", issue_title, flags=re.IGNORECASE
+    )
     similar_issue = query_similar_issue(stripped_title, repo_id)
 
     if similar_issue and similar_issue["distance"] < 1 - SIMILARITY_THRESHOLD:
