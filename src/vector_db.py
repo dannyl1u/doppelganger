@@ -2,12 +2,16 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 
 chroma_client = chromadb.PersistentClient(path="./chroma")
-collection = chroma_client.get_or_create_collection("github_issues")
 model = SentenceTransformer("all-MiniLM-L6-v2")
+
+
+def get_collection_for_repo(repo_full_name):
+    return chroma_client.get_or_create_collection(f"github_issues_{repo_full_name}")
 
 
 def add_issue_to_chroma(full_issue, issue_number, issue_title, repo_full_name):
     embedding = model.encode(full_issue).tolist()
+    collection = get_collection_for_repo(repo_full_name)
 
     collection.add(
         documents=[full_issue],
@@ -23,8 +27,9 @@ def add_issue_to_chroma(full_issue, issue_number, issue_title, repo_full_name):
     )
 
 
-def query_similar_issue(full_issue):
+def query_similar_issue(full_issue, repo_full_name):
     embedding = model.encode(full_issue).tolist()
+    collection = get_collection_for_repo(repo_full_name)
     results = collection.query(query_embeddings=[embedding], n_results=1)
 
     if results["distances"][0]:
@@ -37,6 +42,7 @@ def query_similar_issue(full_issue):
 
 
 def remove_issues_from_chroma(repo_full_name):
+    collection = get_collection_for_repo(repo_full_name)
     results = collection.get(where={"repo_full_name": repo_full_name})
 
     if results and results["ids"]:
