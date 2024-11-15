@@ -5,13 +5,13 @@ chroma_client = chromadb.PersistentClient(path="./chroma")
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
-def get_collection_for_repo(repo_full_name):
-    return chroma_client.get_or_create_collection(f"github_issues_{repo_full_name}")
+def get_collection_for_repo(repo_id):
+    return chroma_client.get_or_create_collection(f"github_issues_{repo_id}")
 
 
-def add_issue_to_chroma(full_issue, issue_number, issue_title, repo_full_name):
+def add_issue_to_chroma(full_issue, issue_number, issue_title, repo_id):
     embedding = model.encode(full_issue).tolist()
-    collection = get_collection_for_repo(repo_full_name)
+    collection = get_collection_for_repo(repo_id)
 
     collection.add(
         documents=[full_issue],
@@ -19,17 +19,17 @@ def add_issue_to_chroma(full_issue, issue_number, issue_title, repo_full_name):
             {
                 "issue_number": str(issue_number),
                 "title": issue_title,
-                "repo_full_name": repo_full_name,
+                "repo_id": repo_id,
             }
         ],
         embeddings=[embedding],
-        ids=[f"{repo_full_name}_{issue_number}"],
+        ids=[f"{repo_id}_{issue_number}"],
     )
 
 
-def query_similar_issue(full_issue, repo_full_name):
+def query_similar_issue(full_issue, repo_id):
     embedding = model.encode(full_issue).tolist()
-    collection = get_collection_for_repo(repo_full_name)
+    collection = get_collection_for_repo(repo_id)
     results = collection.query(query_embeddings=[embedding], n_results=1)
 
     if results["distances"][0]:
@@ -41,9 +41,9 @@ def query_similar_issue(full_issue, repo_full_name):
     return None
 
 
-def remove_issues_from_chroma(repo_full_name):
-    collection = get_collection_for_repo(repo_full_name)
-    results = collection.get(where={"repo_full_name": repo_full_name})
+def remove_issues_from_chroma(repo_id):
+    collection = get_collection_for_repo(repo_id)
+    results = collection.get(where={"repo_id": repo_id})
 
     if results and results["ids"]:
         collection.delete(ids=results["ids"])
@@ -55,6 +55,6 @@ def add_issues_to_chroma(issues):
         issue_title = issue["title"]
         issue_body = issue.get("body", "")
         full_issue = f"{issue_title} {issue_body}"
-        repo_full_name = issue["repository"]["full_name"]
+        repo_id = issue["repository"]["id"]
 
-        add_issue_to_chroma(full_issue, issue_number, issue_title, repo_full_name)
+        add_issue_to_chroma(full_issue, issue_number, issue_title, repo_id)

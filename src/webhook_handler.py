@@ -65,10 +65,11 @@ def handle_installation_repositories(data, installation_id):
         repositories_added = data.get("repositories_added", [])
         for repo in repositories_added:
             repo_full_name = repo.get("full_name")
-            if repo_full_name:
+            repo_id = repo.get("id")
+            if repo_full_name and repo_id:
                 logger.info(f"Repository added to installation: {repo_full_name}")
                 existing_issues = fetch_existing_issues(installation_id, repo_full_name)
-                add_issues_to_chroma(existing_issues)
+                add_issues_to_chroma(existing_issues, repo_id)
                 logger.info(
                     f"Loaded {len(existing_issues)} existing issues into the database for {repo_full_name}"
                 )
@@ -77,9 +78,10 @@ def handle_installation_repositories(data, installation_id):
         repositories_removed = data.get("repositories_removed", [])
         for repo in repositories_removed:
             repo_full_name = repo.get("full_name")
-            if repo_full_name:
+            repo_id = repo.get("id")
+            if repo_full_name and repo_id:
                 logger.info(f"Repository removed from installation: {repo_full_name}")
-                remove_issues_from_chroma(repo_full_name)
+                remove_issues_from_chroma(repo_id)
                 logger.info(f"Removed issues for {repo_full_name} from the database")
 
     else:
@@ -91,10 +93,11 @@ def handle_installation(data, installation_id):
         repositories = data.get("repositories", [])
         for repo in repositories:
             repo_full_name = repo.get("full_name")
-            if repo_full_name:
+            repo_id = repo.get("id")
+            if repo_full_name and repo_id:
                 logger.info(f"App installed on repository: {repo_full_name}")
                 existing_issues = fetch_existing_issues(installation_id, repo_full_name)
-                add_issues_to_chroma(existing_issues)
+                add_issues_to_chroma(existing_issues, repo_id)
                 logger.info(
                     f"Loaded {len(existing_issues)} existing issues into the database for {repo_full_name}"
                 )
@@ -104,13 +107,15 @@ def handle_issues(data, installation_id):
     action = data.get("action")
     issue = data["issue"]
     repo_full_name = data.get("repository", {}).get("full_name")
+    repo_id = data.get("repository", {}).get("id")
 
-    if not repo_full_name:
-        abort(400, "Repository full name is missing")
+    if not repo_full_name or not repo_id:
+        abort(400, "Repository full name or ID is missing")
 
     if action == "opened":
         handle_new_issue(
             installation_id,
+            repo_id,
             repo_full_name,
             issue["number"],
             issue["title"],
