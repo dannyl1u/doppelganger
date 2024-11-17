@@ -1,15 +1,22 @@
 import hashlib
 import hmac
 import logging
+import os
+import shutil
 
 import requests
 from flask import Blueprint, request, jsonify, abort
 
 from config import WEBHOOK_SECRET
+from src.code_indexer import clone_repo_branch, index_code_files
 from src.github_api import fetch_existing_issues
 from src.issue_handler import handle_new_issue
 from src.pull_request_handler import handle_new_pull_request
-from src.vector_db import add_issues_to_chroma, remove_issues_from_chroma
+from src.vector_db import (
+    add_issues_to_chroma,
+    remove_issues_from_chroma,
+    add_code_to_chroma,
+)
 
 logger = logging.getLogger(__name__)
 webhook_blueprint = Blueprint("webhook", __name__)
@@ -127,18 +134,36 @@ def handle_pull_requests(data, installation_id):
     action = data.get("action")
     pull_request = data["pull_request"]
     repo_full_name = data.get("repository", {}).get("full_name")
+    repo_id = data.get("repository", {}).get("id")
 
-    if not repo_full_name:
-        abort(400, "Repository full name is missing")
+    if not repo_full_name or not repo_id:
+        abort(400, "Repository information missing")
 
     pr_diff = requests.get(pull_request["diff_url"]).text
+    changed_files = [
+        f["filename"] for f in requests.get(pull_request["url"] + "/files").json()
+    ]
 
-    if action == "opened":
-        handle_new_pull_request(
-            installation_id,
-            repo_full_name,
-            pull_request["number"],
-            pull_request.get("title", ""),
-            pull_request.get("body", ""),
-            pr_diff,
-        )
+    if action == "opened" or action == "synchronize":
+        temp_dir = None
+        try:
+            # Update main branch collection if needed
+            temp_dir = clone_repo_branch(installation_id, repo_full_name, "main")
+            code_files = index_code_files(temp_dir)
+            add_code_to_chroma(code_files, repo_id, "main")
+
+            # Handle the pull request
+            handle_new_pull_request(
+                installation_id,
+                repo_id,
+                repo_full_name,
+                pull_request["number"],
+                pull_request.get("title", ""),
+                pull_request.get("body", ""),
+                pr_diff,
+                changed_files,
+            )
+        finally:
+            if temp_dir and os.path.exists(temp_dir):
+                logging.info(f"removing temp_dir {temp_dir}...")
+                shutil.rmtree(temp_dir, ignore_errors=True)
