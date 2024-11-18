@@ -1,5 +1,4 @@
 import logging
-import re
 
 from config import SIMILARITY_THRESHOLD
 from src.github_api import close_issue, leave_comment
@@ -22,7 +21,7 @@ def handle_new_issue(
         logger.info(
             f"The new issue #{issue_number} with title '{issue_title}' is most similar to existing issue #{similar_issue['issue_number']} with title '{similar_issue['title']}', with a cosine similarity of {1 - similar_issue['distance']:.2f}."
         )
-    elif similar_issue and similar_issue["distance"] < 1 - (SIMILARITY_THRESHOLD*0.5):
+    elif similar_issue and similar_issue["distance"] < 1 - (SIMILARITY_THRESHOLD * 0.5):
         comment_text = f"Possibly related to issue #{similar_issue['issue_number']} with title '{similar_issue['title']}'"
         leave_comment(installation_id, repo_full_name, issue_number, comment_text)
         logger.info(
