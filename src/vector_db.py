@@ -49,7 +49,7 @@ def remove_issues_from_chroma(repo_id):
         collection.delete(ids=results["ids"])
 
 
-def add_issues_to_chroma(issues):
+def add_issues_to_chroma(issues, repo_id):
     for issue in issues:
         issue_number = issue["number"]
         issue_title = issue["title"]
