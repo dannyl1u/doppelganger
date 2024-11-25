@@ -127,7 +127,7 @@ def add_code_to_chroma(
         )
 
 
-def query_similar_code(
+def query_similar_code( # todo: need to get relevant code files as context instead of only similar code
     changed_files: List[str], pr_content: str, repo_id: int
 ) -> List[Dict]:
     collection = get_collection_for_repo_branch(repo_id)
@@ -135,8 +135,8 @@ def query_similar_code(
 
     results = collection.query(
         query_embeddings=[embedding],
-        n_results=5,
-        where={"file_path": {"$in": changed_files}},
+        # n_results=5,
+        # where={"file_path": {"$in": changed_files}},
     )
 
     return [

@@ -144,7 +144,7 @@ def handle_pull_requests(data, installation_id):
         f["filename"] for f in requests.get(pull_request["url"] + "/files").json()
     ]
 
-    if action == "opened" or action == "synchronize":
+    if action == "opened" or action == "edited":
         temp_dir = None
         try:
             # Update main branch collection if needed

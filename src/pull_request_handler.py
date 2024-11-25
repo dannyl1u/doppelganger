@@ -19,11 +19,21 @@ def generate_pr_feedback(
 
     prompt = f"""
     
-    I am programming and I plan to merge in a pull request. I will provide details of the pull request. You are to 
-    review it and succinctly identify in point form any potential issues, code smells, duplication, or downsides of 
-    the pull request. Consider interactions with the codebase and architectural design. Remember that in the code 
-    diff, '+' is a code addition and '-' is code subtraction. End your response by asking if the PR author has 
-    considered these points. 
+    You are to provide feedback on a code base pull request. Follow the Instructions to provide your feedback on the Context below.
+    
+    Start of Instructions:
+    
+    1. Review the pull request's title, description, code diff, and relevant context from the codebase.
+    2. Using point-form, succinctly identify potential issues, code smells, code duplication, or downsides of 
+    the pull request. 
+    3. Consider interactions with the codebase and architectural design. 
+    4. Remember that in the code diff, '+' is code addition and '-' is code subtraction.
+    5. Do not provide refactored code as part of your feedback. 
+    6. End your response with the sentence "Has the PR author considered these points?"
+   
+    End of Instructions.
+      
+    Start of Context:
     
     Pull Request:
     Title: {pr_title}
@@ -35,6 +45,7 @@ def generate_pr_feedback(
     Changes in PR:
     {pr_diff}
     
+    End of Context.
     """
     logging.info("generating feedback...")
     response = ollama.chat(
