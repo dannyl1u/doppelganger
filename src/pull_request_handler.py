@@ -3,19 +3,19 @@ import ollama
 from typing import List, Dict
 
 from config import OLLAMA_MODEL
-from src.vector_db import query_similar_code
+from src.vector_db import query_by_function_names
 from src.github_api import leave_comment
 
 logger = logging.getLogger(__name__)
 
 
 def generate_pr_feedback(
-    similar_code: List[Dict], pr_title: str, pr_body: str, pr_diff: str
+    used_functions: List, pr_title: str, pr_body: str, pr_diff: str
 ) -> str:
     """Generate feedback using Ollama"""
-    context = "\n".join(
-        [f"File: {code['file_path']}\n{code['content']}\n---" for code in similar_code]
-    )
+    # context = "\n".join(
+    #     [f"File: {code['file_path']}\n{code['content']}\n---" for code in similar_code]
+    # )
 
     prompt = f"""
     
@@ -40,7 +40,7 @@ def generate_pr_feedback(
     Description: {pr_body}
 
     Relevant context from codebase:
-    {context}
+    {used_functions}
 
     Changes in PR:
     {pr_diff}
@@ -54,6 +54,9 @@ def generate_pr_feedback(
 
     return response["message"]["content"]
 
+def get_function_dependencies(changed_files: List[str]):
+    """Gets all internal functions that are imported into a file"""
+    pass # TODO: ensure we validate the changed_file is actially in main
 
 def handle_new_pull_request(
     installation_id: str,
@@ -67,13 +70,12 @@ def handle_new_pull_request(
 ):
     """Handle new pull request webhook"""
     try:
-        # Query similar code from main branch
-        similar_code = query_similar_code(
-            changed_files, f"{pr_title} {pr_body} {pr_diff}", repo_id
-        )
 
+        # todo: get all used function dependencies
+        dependency_functions = get_function_dependencies(changed_files)
+        dependency_function_code = query_by_function_names(dependency_functions, repo_id)
         # Generate feedback
-        feedback = generate_pr_feedback(similar_code, pr_title, pr_body, pr_diff)
+        feedback = generate_pr_feedback(dependency_function_code, pr_title, pr_body, pr_diff)
 
         # Post comment
         leave_comment(installation_id, repo_full_name, pr_number, feedback)

@@ -15,7 +15,7 @@ from src.pull_request_handler import handle_new_pull_request
 from src.vector_db import (
     add_issues_to_chroma,
     remove_issues_from_chroma,
-    add_code_to_chroma,
+    embed_code_base,
 )
 
 logger = logging.getLogger(__name__)
@@ -146,24 +146,26 @@ def handle_pull_requests(data, installation_id):
 
     if action == "opened" or action == "edited":
         temp_dir = None
-        try:
-            # Update main branch collection if needed
-            temp_dir = clone_repo_branch(installation_id, repo_full_name, "main")
-            code_files = index_code_files(temp_dir)
-            add_code_to_chroma(code_files, repo_id, "main")
+        ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+        # try:
+            # # Update main branch collection if needed
+            # temp_dir = clone_repo_branch(installation_id, repo_full_name, "main")
+            # code_files = index_code_files(temp_dir)
+            # add_code_to_chroma(code_files, repo_id, "main")
+        embed_code_base(repo_id, ROOT_DIR) # TODO: ensure embeddings are updated after a pull request (look at actions)
 
-            # Handle the pull request
-            handle_new_pull_request(
-                installation_id,
-                repo_id,
-                repo_full_name,
-                pull_request["number"],
-                pull_request.get("title", ""),
-                pull_request.get("body", ""),
-                pr_diff,
-                changed_files,
-            )
-        finally:
-            if temp_dir and os.path.exists(temp_dir):
-                logging.info(f"removing temp_dir {temp_dir}...")
-                shutil.rmtree(temp_dir, ignore_errors=True)
+        # Handle the pull request
+        handle_new_pull_request(
+            installation_id,
+            repo_id,
+            repo_full_name,
+            pull_request["number"],
+            pull_request.get("title", ""),
+            pull_request.get("body", ""),
+            pr_diff,
+            changed_files,
+        )
+        # finally:
+        #     if temp_dir and os.path.exists(temp_dir):
+        #         logging.info(f"removing temp_dir {temp_dir}...")
+        #         shutil.rmtree(temp_dir, ignore_errors=True)

@@ -1,7 +1,10 @@
-from typing import List, Dict
+import ast
+import os
+from typing import List, Dict, Any
 
 import chromadb
 from sentence_transformers import SentenceTransformer
+from tqdm import tqdm
 
 chroma_client = chromadb.PersistentClient(path="./chroma")
 model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -66,82 +69,108 @@ def get_collection_for_repo_branch(repo_id: int, branch: str = "main"):
     return chroma_client.get_or_create_collection(f"github_code_{repo_id}_{branch}")
 
 
-def add_code_to_chroma(
-    code_files: List[Dict[str, str]], repo_id: int, branch: str = "main"
-):
-    """Add or update code files in the collection"""
-    collection = get_collection_for_repo_branch(repo_id, branch)
+def extract_function_info(file_path: str) -> List[Dict[str, Any]]:
+    """
+    Extract function information from a Python file
 
-    # Prepare all documents for batch processing
-    documents = []
-    metadatas = []
-    ids = []
-    embeddings = []
+    :param file_path: Path to the Python source file
+    :return: List of function information dictionaries
+    """
+    with open(file_path, "r") as f:
+        try:
+            tree = ast.parse(f.read(), filename=file_path)
+        except SyntaxError:
+            return []  # Skip files with syntax errors
 
-    for file in code_files:
-        file_id = f"{repo_id}_{branch}_{file['path']}"
-        embedding = model.encode(file["content"]).tolist()
-
-        documents.append(file["content"])
-        metadatas.append(
-            {"file_path": file["path"], "repo_id": repo_id, "branch": branch}
-        )
-        embeddings.append(embedding)
-        ids.append(file_id)
-
-    # Get existing IDs in the collection
-    existing_ids = set()
-    try:
-        existing = collection.get()
-        if existing and existing["ids"]:
-            existing_ids = set(existing["ids"])
-    except Exception:
-        pass  # Collection might be empty
-
-    # Split into new and existing documents
-    new_indices = []
-    update_indices = []
-
-    for i, doc_id in enumerate(ids):
-        if doc_id in existing_ids:
-            update_indices.append(i)
-        else:
-            new_indices.append(i)
-
-    # Add new documents
-    if new_indices:
-        collection.add(
-            documents=[documents[i] for i in new_indices],
-            metadatas=[metadatas[i] for i in new_indices],
-            embeddings=[embeddings[i] for i in new_indices],
-            ids=[ids[i] for i in new_indices],
-        )
-
-    # Update existing documents
-    if update_indices:
-        collection.update(
-            documents=[documents[i] for i in update_indices],
-            metadatas=[metadatas[i] for i in update_indices],
-            embeddings=[embeddings[i] for i in update_indices],
-            ids=[ids[i] for i in update_indices],
-        )
+    functions = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef):
+            func_name = node.name
+            func_path = f"{file_path}:{func_name}"
+            code = ast.get_source_segment(open(file_path).read(), node)
+            if code:
+                functions.append({
+                    "function_path": func_path,
+                    "file_path": file_path,
+                    "function_name": func_name,
+                    "source_code": code,
+                })
+    return functions
 
 
-def query_similar_code( # todo: need to get relevant code files as context instead of only similar code
-    changed_files: List[str], pr_content: str, repo_id: int
-) -> List[Dict]:
+def embed_code_base(
+        repo_id: int,
+        base_path: str,
+        file_extensions: List[str] = ['.py']
+) -> None:
+    """
+    Recursively embed all functions in a code base
+
+    :param repo_id: Repository ID of code base
+    :param base_path: Root directory of the code base
+    :param file_extensions: List of file extensions to process
+    """
+
+    # Add or update code files in the collection
     collection = get_collection_for_repo_branch(repo_id)
-    embedding = model.encode(pr_content).tolist()
 
-    results = collection.query(
-        query_embeddings=[embedding],
-        # n_results=5,
-        # where={"file_path": {"$in": changed_files}},
+    # Walk through the directory
+    for root, _, files in os.walk(base_path):
+        for file in files:
+            # Check file extension
+            if any(file.endswith(ext) for ext in file_extensions):
+                file_path = os.path.join(root, file)
+
+                # Extract function information
+                functions = extract_function_info(file_path)
+
+                # Embed and store functions
+                for func in functions:
+                    # Create embedding
+                    embedding = model.encode(
+                        f"{func['name']} {func['docstring']} {func['source_code']}"
+                    ).tolist()
+
+                    # Add to ChromaDB
+                    collection.add(
+                        ids=[func['name']],
+                        embeddings=[embedding],
+                        documents=[func["source_code"]],
+                        metadatas=[{
+                            "function_path": func["function_path"],
+                            "file_path": func["file_path"],
+                            "function_name": func["function_name"],
+                        }]
+                    )
+
+
+def query_by_function_names(functions, repo_id):
+    collection = get_collection_for_repo_branch(repo_id)
+    """
+    Retrieve full code and metadata for a list of specific function name paths.
+    
+    :param functions: List of full function name paths to retrieve
+    :param include_metadata: Whether to include additional metadata with results
+    :return: List of dictionaries containing function details
+    """
+    # Validate input
+    if not functions:
+        return []
+
+    # Retrieve functions from ChromaDB
+    results = collection.get(
+        ids=functions
     )
 
-    return [
-        {"file_path": meta["file_path"], "content": doc, "distance": dist}
-        for meta, doc, dist in zip(
-            results["metadatas"][0], results["documents"][0], results["distances"][0]
-        )
-    ]
+    # Process and format results
+    function_details = []
+    for i in range(len(results['ids'])):
+        function_info = {
+            'function_name': results['ids'][i],
+            'source_code': results['documents'][i] if results['documents'] else None,
+            'metadata': results['metadatas'][i] if results['metadatas'] else None
+        }
+
+        function_details.append(function_info)
+
+    return function_details
