@@ -1,7 +1,8 @@
+import json
 import logging
 import ollama
 from typing import List, Dict
-
+import os
 from config import OLLAMA_MODEL
 from src.vector_db import query_by_function_names
 from src.github_api import leave_comment
@@ -19,20 +20,21 @@ def generate_pr_feedback(
 
     prompt = f"""
     
-    You are to provide feedback on a code base pull request. Follow the Instructions to provide your feedback on the Context below.
+    You are a Pull Request Criticiser.
+    Follow the Instructions below given the Context.
     
     Start of Instructions:
     
-    1. Review the pull request's title, description, code diff, and relevant context from the codebase.
-    2. Using point-form, succinctly identify potential issues, code smells, code duplication, or downsides of 
-    the pull request. 
-    3. Consider interactions with the codebase and architectural design. 
+    1. Read the pull request's title, description, code diff, and relevant context from the codebase.
+    2. Using point-form, concisely identify potential issues, code smells, code duplication, or downsides of 
+    the pull request. Include file name in your references.
+    3. Consider interactions of the aforementioned code diff with the relevant context from codebase and architectural design. 
     4. Remember that in the code diff, '+' is code addition and '-' is code subtraction.
     5. Do not provide refactored code as part of your feedback. 
     6. End your response with the sentence "Has the PR author considered these points?"
    
-    End of Instructions.
-      
+    End of Instructions.  
+    
     Start of Context:
     
     Pull Request:
@@ -46,6 +48,8 @@ def generate_pr_feedback(
     {pr_diff}
     
     End of Context.
+    
+    
     """
     logging.info("generating feedback...")
     response = ollama.chat(
@@ -54,9 +58,23 @@ def generate_pr_feedback(
 
     return response["message"]["content"]
 
-def get_function_dependencies(changed_files: List[str]):
+
+def get_function_dependencies(changed_files: List[str]) -> List[str]:
     """Gets all internal functions that are imported into a file"""
-    pass # TODO: ensure we validate the changed_file is actially in main
+    # TODO: ensure we validate the changed_file is actially in main,
+    # TODO: modify json file so that  dots become slashes here or in gen_deps.py
+    function_set = set()
+
+    # remove file extension #todo add project path to the finction path and
+    changed_files = [os.path.splitext(x)[0] for x in changed_files]
+
+    with open("dependencies.json") as f:
+        dependency_graph = json.load(f)
+        for file in changed_files:
+            if file in dependency_graph:
+                function_set.update(dependency_graph[file])
+    return list(function_set)
+
 
 def handle_new_pull_request(
     installation_id: str,
@@ -70,12 +88,10 @@ def handle_new_pull_request(
 ):
     """Handle new pull request webhook"""
     try:
-
-        # todo: get all used function dependencies
         dependency_functions = get_function_dependencies(changed_files)
-        dependency_function_code = query_by_function_names(dependency_functions, repo_id)
+        dependency_function_context = query_by_function_names(dependency_functions, repo_id)
         # Generate feedback
-        feedback = generate_pr_feedback(dependency_function_code, pr_title, pr_body, pr_diff)
+        feedback = generate_pr_feedback(dependency_function_context, pr_title, pr_body, pr_diff)
 
         # Post comment
         leave_comment(installation_id, repo_full_name, pr_number, feedback)

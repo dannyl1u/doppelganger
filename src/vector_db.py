@@ -125,15 +125,20 @@ def embed_code_base(
                 functions = extract_function_info(file_path)
 
                 # Embed and store functions
-                for func in functions:
+                for func in functions: #
+                    # Get relative path of function
+                    # root_dir = os.path.dirname(os.path.abspath(__file__))
+                    # relative_path = os.path.relpath(func['function_path'], root_dir)
+                    # func["file_path"] = relative_path
+                    # TODO: done remove up to root dir ; C:\Users\amy36\PycharmProjects\doppelganger\src\webhook_handler.py:handle_pull_requests
                     # Create embedding
                     embedding = model.encode(
-                        f"{func['name']} {func['docstring']} {func['source_code']}"
+                        f"{func['source_code']}"
                     ).tolist()
 
                     # Add to ChromaDB
                     collection.add(
-                        ids=[func['name']],
+                        ids=[func["function_path"]],
                         embeddings=[embedding],
                         documents=[func["source_code"]],
                         metadatas=[{
@@ -144,7 +149,7 @@ def embed_code_base(
                     )
 
 
-def query_by_function_names(functions, repo_id):
+def query_by_function_names(function_paths, repo_id):
     collection = get_collection_for_repo_branch(repo_id)
     """
     Retrieve full code and metadata for a list of specific function name paths.
@@ -154,19 +159,19 @@ def query_by_function_names(functions, repo_id):
     :return: List of dictionaries containing function details
     """
     # Validate input
-    if not functions:
+    if not function_paths:
         return []
 
     # Retrieve functions from ChromaDB
-    results = collection.get(
-        ids=functions
-    )
+    results = collection.get(where={"function_path":{"$in": function_paths}}) # TODO: process function_paths to match something in the vectorDB
 
     # Process and format results
     function_details = []
+    # todo: make schema for metadata
+    # metadata:{'file_path': 'C:\\Users\\amy36\\PycharmProjects\\doppelganger\\src\\github_api.py', 'function_name': 'fetch_existing_issues', 'function_path': 'C:\\Users\\amy36\\PycharmProjects\\doppelganger\\src\\github_api.py:fetch_existing_issues'}
     for i in range(len(results['ids'])):
         function_info = {
-            'function_name': results['ids'][i],
+            # 'function_name': results['ids'][i],
             'source_code': results['documents'][i] if results['documents'] else None,
             'metadata': results['metadatas'][i] if results['metadatas'] else None
         }
