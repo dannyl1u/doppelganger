@@ -11,6 +11,21 @@ In addition, it comments feedback on PRs based on title and description for poin
 
 [Doppelganger Documentation](https://dannyl1u.github.io/doppelganger/docs/intro)
 
+## How it works
+Each `issue['title']` and `issue['body']` is converted into vector representation using **[MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)**.
+
+Each vector are persisted in **[ChromaDB](https://docs.trychroma.com)** and performs similarity search using ChromaDB's built-in **[cosine similarity search](https://docs.trychroma.com/guides#changing-the-distance-function)**. Along with each vector are `issue_id` and `issue['title']` stored using ChromaDB's `metadata` argument. 
+
+`SIMILARITY_THRESHOLD` (i.e. distance `d` in which we consider "similar") is configurable, and can be set to any decimal between 0 and 1 [1].
+
+
+Doppelganger will close any issue when the cosine distance `d` between the newly submitted issue and the most similar issue is greater than this threshold. Otherwise, if the newly submitted issue is greater than (SIMILARTY_THRESHOLD*0.5), it will leave a helpful comment indicating the most similar/related issue.
+
+![Cosine Similarity Formula](https://latex.codecogs.com/svg.image?&space;d=1.0-\frac{\sum(A_i\times&space;B_i)}{\sqrt{\sum(A_i^2)}\cdot\sqrt{\sum(B_i^2)})  
+[1] cosine distance
+
+Issues and pull requests are stored in ChromaDB [collections](https://docs.trychroma.com/reference/py-collection#collection-objects) per repository.
+
 
 ## Prerequisites
 
