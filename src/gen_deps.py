@@ -5,10 +5,11 @@ from collections import defaultdict
 from pathlib import Path
 from typing import DefaultDict, Generator, Set, Union
 
+
 # use this script with the command `python  src/gen_deps.py C:/Users/amy36/PycharmProjects/doppelganger  src > dependencies.json`
 class GenerateDependency:
     def __init__(
-            self, root_path: str, package_name: str, group_packages: Set[str] = set()
+        self, root_path: str, package_name: str, group_packages: Set[str] = set()
     ) -> None:
         self._root_path = Path(root_path)
         self._package_name = package_name
@@ -17,7 +18,7 @@ class GenerateDependency:
 
     @classmethod
     def iter_py_files(
-            cls, directory_path: Union[Path, str], extension="py"
+        cls, directory_path: Union[Path, str], extension="py"
     ) -> Generator[Path, None, None]:
         """Get all the files under a directory with specific extension"""
         yield from Path(directory_path).rglob(f"*.{extension}")
@@ -36,10 +37,13 @@ class GenerateDependency:
 
     def _is_internal_package(self, module_name: str) -> bool:
         """Check if a module is part of the internal project packages"""
-        return any(module_name.startswith(internal_pkg) for internal_pkg in self.get_internal_packages())
+        return any(
+            module_name.startswith(internal_pkg)
+            for internal_pkg in self.get_internal_packages()
+        )
 
     def filename_to_module(
-            cls, filepath: Union[Path, str], root_path: Union[Path, str]
+        cls, filepath: Union[Path, str], root_path: Union[Path, str]
     ) -> str:
         """Given a filepath and a root_path derive the module name as in import statement"""
         realpath = str(Path(filepath).relative_to(root_path))
@@ -58,7 +62,7 @@ class GenerateDependency:
 
         imports = set()
         for node in ast.walk(
-                ast.parse(source=filename.read_text(encoding="utf8"), filename=filename)
+            ast.parse(source=filename.read_text(encoding="utf8"), filename=filename)
         ):
             if isinstance(node, ast.Import):
                 for name in node.names:
@@ -90,7 +94,6 @@ class GenerateDependency:
     def get_import_map(self) -> DefaultDict[str, Set[str]]:
         """Get import mapping for internal modules only"""
         imports = defaultdict(set)
-        internal_packages = self.get_internal_packages()
 
         for file in self.iter_py_files(self._root_path / self._package_name):
             file_imports = self._get_all_imports_of_file(file)
@@ -99,8 +102,9 @@ class GenerateDependency:
             # Only process if the current module is internal
             if self._is_internal_package(current_module):
                 imports[current_module].update(
-                    {_import for _import in file_imports
-                     if _import != current_module}  # Exclude self-imports
+                    {
+                        _import for _import in file_imports if _import != current_module
+                    }  # Exclude self-imports
                 )
 
         return imports

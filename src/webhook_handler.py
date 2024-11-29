@@ -1,14 +1,11 @@
 import hashlib
 import hmac
 import logging
-import os
-import shutil
 
 import requests
 from flask import Blueprint, request, jsonify, abort
 
-from config import WEBHOOK_SECRET
-from src.code_indexer import clone_repo_branch, index_code_files
+from config import WEBHOOK_SECRET, ROOT_DIR
 from src.github_api import fetch_existing_issues
 from src.issue_handler import handle_new_issue
 from src.pull_request_handler import handle_new_pull_request
@@ -145,14 +142,13 @@ def handle_pull_requests(data, installation_id):
     ]
 
     if action == "opened" or action == "edited":
-        temp_dir = None
-        ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) #todo: why is ROOT_DIR "'C:\\Users\\amy36\\PycharmProjects\\doppelganger\\src"? it should not include /src
         # try:
-            # # Update main branch collection if needed
-            # temp_dir = clone_repo_branch(installation_id, repo_full_name, "main")
-            # code_files = index_code_files(temp_dir)
-            # add_code_to_chroma(code_files, repo_id, "main")
-        embed_code_base(repo_id, ROOT_DIR) # TODO: 1. add embdeddings when a repository is added, ensure root dir is from the repo ofo rep_id
+        # # Update main branch collection if needed
+        # temp_dir = clone_repo_branch(installation_id, repo_full_name, "main")
+
+        embed_code_base(
+            repo_id, f"{ROOT_DIR}/src"
+        )  # TODO: 1. add embeddings when a repository is added, ensure root dir is from the repo of rep_id and main branch code is embedded
         # TODO: 2. ensure embeddings are updated after a pull request (look at actions) on main
 
         # Handle the pull request

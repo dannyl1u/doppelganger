@@ -1,10 +1,10 @@
 import ast
 import os
 from typing import List, Dict, Any
-
+import re
 import chromadb
 from sentence_transformers import SentenceTransformer
-from tqdm import tqdm
+from config import ROOT_DIR
 
 chroma_client = chromadb.PersistentClient(path="./chroma")
 model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -69,7 +69,7 @@ def get_collection_for_repo_branch(repo_id: int, branch: str = "main"):
     return chroma_client.get_or_create_collection(f"github_code_{repo_id}_{branch}")
 
 
-def extract_function_info(file_path: str) -> List[Dict[str, Any]]:
+def _extract_function_info(file_path: str) -> List[Dict[str, Any]]:
     """
     Extract function information from a Python file
 
@@ -89,19 +89,27 @@ def extract_function_info(file_path: str) -> List[Dict[str, Any]]:
             func_path = f"{file_path}:{func_name}"
             code = ast.get_source_segment(open(file_path).read(), node)
             if code:
-                functions.append({
-                    "function_path": func_path,
-                    "file_path": file_path,
-                    "function_name": func_name,
-                    "source_code": code,
-                })
+                functions.append(
+                    {
+                        "function_path": func_path,
+                        "file_path": file_path,
+                        "function_name": func_name,
+                        "source_code": code,
+                    }
+                )
     return functions
 
 
+def _format_function_path(function_path: str, file_extensions: List[str]) -> str:
+    relative_path = os.path.relpath(function_path, ROOT_DIR)
+    formatted_func_path = relative_path.replace("\\", "/")
+    pattern = r"(" + "|".join(re.escape(ext) for ext in file_extensions) + r"):"
+    formatted_func_path = re.sub(pattern, "/", formatted_func_path)
+    return formatted_func_path
+
+
 def embed_code_base(
-        repo_id: int,
-        base_path: str,
-        file_extensions: List[str] = ['.py']
+    repo_id: int, base_path: str, file_extensions: List[str] = [".py"]
 ) -> None:
     """
     Recursively embed all functions in a code base
@@ -122,30 +130,36 @@ def embed_code_base(
                 file_path = os.path.join(root, file)
 
                 # Extract function information
-                functions = extract_function_info(file_path)
+                functions = _extract_function_info(file_path)
 
                 # Embed and store functions
-                for func in functions: #
-                    # Get relative path of function
-                    # root_dir = os.path.dirname(os.path.abspath(__file__))
-                    # relative_path = os.path.relpath(func['function_path'], root_dir)
-                    # func["file_path"] = relative_path
-                    # TODO: done remove up to root dir ; C:\Users\amy36\PycharmProjects\doppelganger\src\webhook_handler.py:handle_pull_requests
+                for func in functions:
+
+                    func["function_path"] = _format_function_path(
+                        func["function_path"], file_extensions
+                    )
+
                     # Create embedding
-                    embedding = model.encode(
-                        f"{func['source_code']}"
-                    ).tolist()
+                    embedding = model.encode(f"{func['source_code']}").tolist()
 
                     # Add to ChromaDB
                     collection.add(
                         ids=[func["function_path"]],
                         embeddings=[embedding],
                         documents=[func["source_code"]],
-                        metadatas=[{
-                            "function_path": func["function_path"],
-                            "file_path": func["file_path"],
-                            "function_name": func["function_name"],
-                        }]
+                        metadatas=[
+                            {
+                                "function_path": func[
+                                    "function_path"
+                                ],  # sample: src/vector_db/add_issue_to_chroma
+                                "file_path": func[
+                                    "file_path"
+                                ],  # sample: '<absolutute path to doppelganger>\\src\\vector_db.py'
+                                "function_name": func[
+                                    "function_name"
+                                ],  # sample: add_issue_to_chroma
+                            }
+                        ],
                     )
 
 
@@ -155,7 +169,6 @@ def query_by_function_names(function_paths, repo_id):
     Retrieve full code and metadata for a list of specific function name paths.
     
     :param functions: List of full function name paths to retrieve
-    :param include_metadata: Whether to include additional metadata with results
     :return: List of dictionaries containing function details
     """
     # Validate input
@@ -163,17 +176,15 @@ def query_by_function_names(function_paths, repo_id):
         return []
 
     # Retrieve functions from ChromaDB
-    results = collection.get(where={"function_path":{"$in": function_paths}}) # TODO: process function_paths to match something in the vectorDB
+    results = collection.get(where={"function_path": {"$in": function_paths}})
 
     # Process and format results
     function_details = []
-    # todo: make schema for metadata
-    # metadata:{'file_path': 'C:\\Users\\amy36\\PycharmProjects\\doppelganger\\src\\github_api.py', 'function_name': 'fetch_existing_issues', 'function_path': 'C:\\Users\\amy36\\PycharmProjects\\doppelganger\\src\\github_api.py:fetch_existing_issues'}
-    for i in range(len(results['ids'])):
+
+    for i in range(len(results["ids"])):
         function_info = {
-            # 'function_name': results['ids'][i],
-            'source_code': results['documents'][i] if results['documents'] else None,
-            'metadata': results['metadatas'][i] if results['metadatas'] else None
+            "source_code": results["documents"][i] if results["documents"] else None,
+            "metadata": results["metadatas"][i] if results["metadatas"] else None,
         }
 
         function_details.append(function_info)
