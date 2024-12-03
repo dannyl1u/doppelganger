@@ -1,0 +1,30 @@
+{
+  "src.issue_handler": [
+    "src.vector_db.query_similar_issue",
+    "src.github_api.close_issue",
+    "src.vector_db.add_issue_to_chroma",
+    "src.github_api.leave_comment"
+  ],
+  "src.pull_request_handler": [
+    "src.github_api.leave_comment"
+  ],
+  "src.webhook_handler": [
+    "src.vector_db.remove_issues_from_chroma",
+    "src.github_api.fetch_existing_issues",
+    "src.pull_request_handler.handle_new_pull_request",
+    "src.vector_db.add_issues_to_chroma",
+    "src.issue_handler.handle_new_issue"
+  ],
+  "src": [
+    "src.webhook_handler.webhook_blueprint",
+    "src.github_api.close_issue",
+    "src.vector_db.add_issue_to_chroma",
+    "src.vector_db.query_similar_issue",
+    "src.vector_db.remove_issues_from_chroma",
+    "src.github_api.get_access_token",
+    "src.github_api.fetch_existing_issues",
+    "src.github_api.leave_comment",
+    "src.vector_db.add_issues_to_chroma",
+    "src.issue_handler.handle_new_issue"
+  ]
+}
